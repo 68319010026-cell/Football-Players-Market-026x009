@@ -406,6 +406,12 @@
     color:var(--gold);
   }
   .squad-item .edit-btn:hover{background:rgba(217,174,85,0.12);}
+  .squad-item .delete-btn{
+    background:transparent;
+    border:1px solid rgba(193,84,59,0.4);
+    color:var(--danger);
+  }
+  .squad-item .delete-btn:hover{background:rgba(193,84,59,0.14);}
 
   footer{
     text-align:center;

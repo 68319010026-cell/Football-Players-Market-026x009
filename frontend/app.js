@@ -79,6 +79,7 @@
           <span class="price">${escapeHtml(priceLabel)}</span>
           <span class="item-actions">
             <button type="button" class="edit-btn" data-action="edit" data-id="${p.id}">แก้ไข</button>
+            <button type="button" class="delete-btn" data-action="delete" data-id="${p.id}">ลบ</button>
           </span>
         </div>
       `;
@@ -147,6 +148,13 @@
     const id = Number(btn.dataset.id);
     if(btn.dataset.action === 'edit'){
       enterEditMode(id);
+    } else if(btn.dataset.action === 'delete'){
+      const player = players.find(p => p.id === id);
+      players = players.filter(p => p.id !== id);
+      if(editingId === id) exitEditMode();
+      renderSquadList();
+      statusLine.textContent = player ? `ลบ "${player.name}" ออกจากตลาดแล้ว` : 'ลบนักเตะออกจากตลาดแล้ว';
+      statusLine.className = 'status-line';
     }
   });
 
