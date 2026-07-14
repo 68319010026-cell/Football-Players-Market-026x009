@@ -116,6 +116,35 @@ function calculatePlayerPrice(position, rating) {
     return Math.round(basePrice);
 }
 
+// ตัวอย่างจังหวะที่ผู้ใช้กดเพิ่มนักเตะ
+function handleAddPlayer(name, position, rating) {
+    const price = calculatePlayerPrice(position, rating);
+
+    // 🚨 เช็กก่อนว่างบพอไหม
+    if (teamBudget - price < 0) {
+        alert(`❌ งบประมาณไม่พอ! นักเตะคนนี้ค่าตัว ${price.toLocaleString()} EUR แต่งบเหลือเพียง ${teamBudget.toLocaleString()} EUR`);
+        return; // เด้งออก ไม่ยอมให้เพิ่ม
+    }
+
+    // หักเงินออกจากงบรวม
+    teamBudget -= price;
+
+    // ... (ลอจิกการเพิ่มนักเตะของคุณตัวเดิม เช่น push เข้า Array และ render การ์ด) ...
+    // ตอนบันทึกข้อมูลนักเตะ อย่าลืมพ่วงค่า price นี้ลงไปด้วยนะ!
+}
+
+function handleDeletePlayer(playerId) {
+    // 1. หาตัวนักเตะที่จะลบก่อน เพื่อดูว่าค่าตัวเขาเท่าไหร่
+    const player = players.find(p => p.id === playerId);
+    
+    if (player) {
+        // 2. คืนเงินค่าตัวเข้าสู่ งบประมาณหลัก
+        teamBudget += player.price;
+        
+        // 3. ทำการลบนักเตะตามลอจิกเดิมของคุณ...
+    }
+}
+
 // ฟังก์ชันเตรียมข้อมูลก่อนแก้ไข (เมื่อคลิกปุ่ม "แก้ไข")
 window.handleEdit = function(playerId) {
     const players = JSON.parse(localStorage.getItem('players')) || [];
