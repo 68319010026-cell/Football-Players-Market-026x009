@@ -313,3 +313,48 @@ body {
         grid-template-columns: 1fr;
     }
 }
+/* จัดสไตล์แผงปุ่มบนการ์ดนักเตะ */
+.card-actions {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* ปุ่มแก้ไขดีไซน์สีน้ำเงินสว่าง */
+.btn-edit {
+    flex: 1;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 6px 4px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.btn-edit:hover {
+    background: #5dade2;
+    transform: translateY(-1px);
+}
+
+/* ปรับปรุงปุ่มปลดออกให้ได้ขนาดสมมาตรกัน */
+.btn-remove {
+    flex: 1;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    padding: 6px 4px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.btn-remove:hover {
+    background: #f1948a;
+    transform: translateY(-1px);
+}

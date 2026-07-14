@@ -1,54 +1,78 @@
-// 1. รอให้โครงสร้างเว็บโหลดเสร็จสมบูรณ์ก่อนทำงาน
+// ตัวแปรสำหรับเก็บ ID ของนักเตะที่กำลังถูกแก้ไข (ถ้าไม่มีจะเป็น null)
+let editPlayerId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     const playerForm = document.getElementById('player-form');
+    const submitBtn = playerForm.querySelector('.btn-submit-neon');
 
-    // 2. ดักจับเหตุการณ์ตอนที่ผู้ใช้กดปุ่มส่งฟอร์ม (Submit)
     if (playerForm) {
         playerForm.addEventListener('submit', (event) => {
-            event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรชตัวเอง
+            event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
 
-            // ดึงค่าจากช่อง Input ตาม ID ที่เรากำหนดไว้เป๊ะๆ
+            // ดึงค่าจากฟอร์ม
             const name = document.getElementById('input-name').value;
             const position = document.getElementById('select-position').value;
             const rating = document.getElementById('input-rating').value;
             const imageUrl = document.getElementById('input-image').value;
 
-            // 3. ส่งข้อมูลไปให้ฟังก์ชัน addPlayer ของฝั่ง Backend ทำงาน (เก็บลง LocalStorage)
-            if (typeof addPlayer === 'function') {
-                addPlayer(name, position, rating, imageUrl);
-                
-                // รีเซ็ตล้างข้อมูลในฟอร์มหลังจากเพิ่มเสร็จ
-                playerForm.reset();
+            let players = JSON.parse(localStorage.getItem('players')) || [];
 
-                // สั่งอัปเดตแสดงการ์ดใหม่ล่าสุดบนจอทันที
-                updatePlayerDisplay();
+            if (editPlayerId !== null) {
+                // --- โหมดแก้ไขข้อมูล ---
+                players = players.map(player => {
+                    if (player.id === editPlayerId) {
+                        return {
+                            ...player,
+                            name: name,
+                            position: position,
+                            rating: rating,
+                            imageUrl: imageUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150'
+                        };
+                    }
+                    return player;
+                });
+
+                // รีเซ็ตสถานะโหมดแก้ไขกลับเป็นปกติ
+                editPlayerId = null;
+                if (submitBtn) {
+                    submitBtn.innerHTML = `<span class="icon-check">✓</span> เซ็นสัญญาเข้าทีม`;
+                    submitBtn.style.background = 'linear-gradient(90deg, #10b981, #0df59b)'; // กลับเป็นสีเขียว
+                }
             } else {
-                console.error("ไม่พบฟังก์ชัน addPlayer ของ Backend!");
+                // --- โหมดเพิ่มนักเตะใหม่ (ปกติ) ---
+                const newPlayer = {
+                    id: Date.now().toString(),
+                    name: name,
+                    position: position,
+                    rating: rating,
+                    imageUrl: imageUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150'
+                };
+                players.push(newPlayer);
             }
+
+            // บันทึกและวาดการ์ดใหม่
+            localStorage.setItem('players', JSON.stringify(players));
+            playerForm.reset();
+            updatePlayerDisplay();
         });
     }
 
-    // สั่งให้แสดงรายชื่อนักเตะที่มีอยู่ตั้งแต่ตอนเปิดหน้าเว็บครั้งแรก
     updatePlayerDisplay();
 });
 
-// 4. ฟังก์ชันอัปเดตและสร้าง HTML เพื่อแสดงการ์ดนักเตะบนหน้าจอ
+// ฟังก์ชันวาดการ์ดนักเตะ
 function updatePlayerDisplay() {
     const displayArea = document.getElementById('player-display-area');
     if (!displayArea) return;
 
-    // เคลียร์พื้นที่แสดงผลเดิมเพื่อรอพ่นข้อมูลใหม่
     displayArea.innerHTML = '';
-
-    // สมมติว่า Backend เก็บข้อมูลไว้ใน LocalStorage หรือมีตัวแปรดึงข้อมูลออกมา
     const players = JSON.parse(localStorage.getItem('players')) || [];
 
     if (players.length === 0) {
-        displayArea.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #8fa0b0;">ยังไม่มีนักเตะในทีมของคุณ ลองเพิ่มนักเตะดูสิ!</p>`;
+        displayArea.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #8fa0b0; padding-top: 100px;">ยังไม่มีนักเตะในทีมของคุณ ลองเพิ่มนักเตะดูสิ!</p>`;
         return;
     }
 
-    // วนลูปเพื่อสร้างการ์ดของนักเตะแต่ละคน
     players.forEach(player => {
         const card = document.createElement('div');
         card.className = 'fut-card';
@@ -58,24 +82,57 @@ function updatePlayerDisplay() {
                 <span class="position">${player.position}</span>
             </div>
             <div class="image-wrapper">
-                <img src="${player.imageUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150'}" alt="${player.name}">
+                <img src="${player.imageUrl}" alt="${player.name}">
             </div>
             <div class="card-bottom">
                 <div class="player-name">${player.name}</div>
-                <button class="btn-info">ดูข้อมูล</button>
-                <button class="btn-remove" onclick="handleDelete('${player.id}')">ปลดออกจากทีม</button>
+                <div class="card-actions">
+                    <button class="btn-edit" onclick="handleEdit('${player.id}')">แก้ไข</button>
+                    <button class="btn-remove" onclick="handleDelete('${player.id}')">ปลดออก</button>
+                </div>
             </div>
         `;
         displayArea.appendChild(card);
     });
 }
 
-// 5. ฟังก์ชันสำหรับปุ่มลบเมื่อคลิก "ปลดออกจากทีม"
-window.handleDelete = function(playerId) {
-    if (typeof deletePlayer === 'function') {
-        deletePlayer(playerId); // เรียกใช้ฟังก์ชันลบของ Backend
-        updatePlayerDisplay(); // อัปเดตแสดงหน้าจอใหม่หลังลบ
-    } else {
-        console.error("ไม่พบฟังก์ชัน deletePlayer ของ Backend!");
+// ฟังก์ชันเตรียมข้อมูลก่อนแก้ไข (เมื่อคลิกปุ่ม "แก้ไข")
+window.handleEdit = function(playerId) {
+    const players = JSON.parse(localStorage.getItem('players')) || [];
+    const playerToEdit = players.find(p => p.id === playerId);
+
+    if (playerToEdit) {
+        // 1. ดึงข้อมูลนักเตะกลับไปใส่ในช่องกรอกของฟอร์ม
+        document.getElementById('input-name').value = playerToEdit.name;
+        document.getElementById('select-position').value = playerToEdit.position;
+        document.getElementById('input-rating').value = playerToEdit.rating;
+        document.getElementById('input-image').value = playerToEdit.imageUrl;
+
+        // 2. ล็อก ID นักเตะที่กำลังแก้ไขไว้
+        editPlayerId = playerId;
+
+        // 3. เปลี่ยนหน้าตาปุ่ม Submit ให้เด่นชัดว่าเป็น "โหมดแก้ไข"
+        const submitBtn = document.querySelector('.btn-submit-neon');
+        if (submitBtn) {
+            submitBtn.innerHTML = `✏️ บันทึกการแก้ไขข้อมูล`;
+            submitBtn.style.background = 'linear-gradient(90deg, #f5b041, #f39c12)'; // เปลี่ยนเป็นสีส้มทอง
+        }
+
+        // เลื่อนหน้าจอกลับขึ้นไปที่ฟอร์ม (สำหรับมือถือ)
+        document.querySelector('.control-panel').scrollIntoView({ behavior: 'smooth' });
     }
+}
+
+// ฟังก์ชันลบนักเตะ
+window.handleDelete = function(playerId) {
+    // ป้องกันการลบข้อมูลขณะที่กำลังกดแก้ไขค้างไว้
+    if (editPlayerId === playerId) {
+        alert("กรุณาบันทึกข้อมูลการแก้ไข หรือรีเซ็ตฟอร์มก่อนทำการปลดนักเตะคนนี้ออกครับ!");
+        return;
+    }
+
+    let players = JSON.parse(localStorage.getItem('players')) || [];
+    players = players.filter(player => player.id !== playerId);
+    localStorage.setItem('players', JSON.stringify(players));
+    updatePlayerDisplay();
 }
