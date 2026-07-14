@@ -1,92 +1,286 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dream Team Football Manager</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dream Team Football Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="stadium-header">
-        <div class="header-left">
-            <h2>Dream Team Football Manager</h2>
+<div class="pitch-lines">
+  <header>
+    <div class="eyebrow">Dream Team Football Market</div>
+    <h1>สร้างนักเตะ<br><span>ของทีมในฝัน</span></h1>
+    <p>กรอกข้อมูลนักเตะทางซ้าย แล้วดูการ์ดของคุณอัปเดตแบบเรียลไทม์ทางขวา เสร็จแล้วกด Push เพื่อส่งเข้าตลาดทีมในฝัน</p>
+  </header>
+</div>
+
+<main>
+  <section class="panel">
+    <p class="panel-title">ข้อมูลนักเตะ</p>
+    <form id="player-form">
+      <div class="editing-banner" id="editing-banner">กำลังแก้ไขนักเตะ — เปลี่ยนข้อมูลแล้วกด "บันทึกการแก้ไข"</div>
+      <div class="field">
+        <label for="input-name">ชื่อนักเตะ</label>
+        <input type="text" id="input-name" placeholder="เช่น สมชาย ใจเพชร" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="select-position">ตำแหน่ง</label>
+        <select id="select-position">
+          <option value="GK">GK — ผู้รักษาประตู</option>
+          <option value="DF">DF — กองหลัง</option>
+          <option value="MF" selected>MF — กองกลาง</option>
+          <option value="FW">FW — กองหน้า</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="input-rating">ค่าพลัง (Overall Rating)</label>
+        <div class="rating-row">
+          <input type="range" id="input-rating" min="40" max="99" value="75">
+          <span class="rating-badge" id="rating-badge">75</span>
         </div>
-        <div class="header-logo">
-            <div class="logo-shield">DT</div>
-        </div>
-        <div class="header-right">
-            <div class="user-profile">👤</div>
-        </div>
-    </header>
+        <small>ลากแถบเพื่อปรับพลังนักเตะระหว่าง 40–99</small>
+      </div>
 
-    <main class="dashboard-container">
-        
-        <aside class="control-panel">
-            <h3 class="panel-title">⚽ การจัดการนักเตะฟุตบอล</h3>
-            <div class="form-card">
-                <h4 class="form-title">Add Player</h4>
-                
-                <form id="player-form">
-                    <div class="form-group">
-                        <label>ชื่อนักเตะ</label>
-                        <input type="text" id="input-name" placeholder="ชื่อนักเตะ" required>
-                    </div>
+      <div class="field">
+        <label for="input-image">ลิงก์รูปภาพ</label>
+        <input type="url" id="input-image" placeholder="https://example.com/photo.jpg">
+        <small>วางลิงก์รูปภาพนักเตะ (ไม่บังคับ)</small>
+      </div>
 
-                    <div class="form-group">
-                        <label>ตำแหน่ง</label>
-                        <select id="select-position" required>
-                            <option value="" disabled selected>FW MF DF GK</option>
-                            <option value="FW">กองหน้า (FW)</option>
-                            <option value="MF">กองกลาง (MF)</option>
-                            <option value="DF">กองหลัง (DF)</option>
-                            <option value="GK">ผู้รักษาประตู (GK)</option>
-                        </select>
-                    </div>
+      <div class="field">
+        <label for="input-price">ราคา (บาท)</label>
+        <input type="number" id="input-price" min="0" step="1" placeholder="เช่น 1500">
+        <small>ตั้งราคาซื้อขายนักเตะในตลาด</small>
+      </div>
 
-                    <div class="form-group">
-                        <label>พลัง</label>
-                        <input type="number" id="input-rating" min="1" max="99" placeholder="1-99" required>
-                    </div>
+      <div class="actions">
+        <button type="button" id="test-btn">ทดสอบพิมพ์</button>
+        <button type="button" id="cancel-edit-btn" style="display:none;">ยกเลิกแก้ไข</button>
+        <button type="submit" id="push-btn">Push เข้าตลาด</button>
+      </div>
+      <div class="status-line" id="status-line"></div>
+    </form>
+  </section>
 
-                    <div class="form-group">
-                        <label>ลิงก์รูปภาพ</label>
-                        <input type="url" id="input-image" placeholder="ลิงก์รูปภาพ URL" required>
-                    </div>
+  <section class="preview-col">
+    <div id="player-display-area"></div>
+    <div class="squad-title" id="squad-title" style="display:none;">นักเตะที่ Push แล้ว</div>
+    <div id="squad-list"></div>
+  </section>
+</main>
 
-                    <button type="submit" class="btn-submit-neon">
-                        <span class="icon-check">✓</span> เซ็นสัญญาเข้าทีม
-                    </button>
-                </form>
+<footer>Dream Team Football Market — สนามซ้อมสำหรับสร้างการ์ดนักเตะ</footer>
+
+<script>
+(function(){
+  const form = document.getElementById('player-form');
+  const nameInput = document.getElementById('input-name');
+  const positionSelect = document.getElementById('select-position');
+  const ratingInput = document.getElementById('input-rating');
+  const ratingBadge = document.getElementById('rating-badge');
+  const imageInput = document.getElementById('input-image');
+  const priceInput = document.getElementById('input-price');
+  const displayArea = document.getElementById('player-display-area');
+  const statusLine = document.getElementById('status-line');
+  const testBtn = document.getElementById('test-btn');
+  const pushBtn = document.getElementById('push-btn');
+  const cancelEditBtn = document.getElementById('cancel-edit-btn');
+  const editingBanner = document.getElementById('editing-banner');
+  const squadList = document.getElementById('squad-list');
+  const squadTitle = document.getElementById('squad-title');
+
+  const positionLabels = { GK:'ผู้รักษาประตู', DF:'กองหลัง', MF:'กองกลาง', FW:'กองหน้า' };
+
+  // in-memory squad data (replace with real backend calls when ready)
+  let players = [];
+  let nextId = 1;
+  let editingId = null;
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  function formatPrice(price){
+    const n = Number(price);
+    if(!price || isNaN(n)) return null;
+    return n.toLocaleString('th-TH') + ' บาท';
+  }
+
+  function renderCard(){
+    const name = nameInput.value.trim() || 'ชื่อนักเตะ';
+    const position = positionSelect.value;
+    const rating = ratingInput.value;
+    const imageUrl = imageInput.value.trim();
+    const priceLabel = formatPrice(priceInput.value);
+
+    ratingBadge.textContent = rating;
+
+    const photoHtml = imageUrl
+      ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" onerror="this.parentElement.innerHTML='<span class=\\'placeholder\\'>โหลดรูปไม่ได้</span>';">`
+      : `<span class="placeholder">ยังไม่มีรูป</span>`;
+
+    displayArea.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <div class="card-top">
+            <div>
+              <div class="card-rating">${escapeHtml(rating)}</div>
+              <div class="card-position">${escapeHtml(position)}</div>
             </div>
-        </aside>
+            <div class="card-crest">DT</div>
+          </div>
+          <div class="card-photo-wrap">${photoHtml}</div>
+          <div class="card-divider"></div>
+          <div class="card-name">${escapeHtml(name)}</div>
+          <div class="card-foot">${escapeHtml(positionLabels[position] || '')}</div>
+        </div>
+        ${priceLabel ? `<div class="card-price">${escapeHtml(priceLabel)}</div>` : ''}
+      </div>
+    `;
+  }
 
-        <section class="pitch-area">
-            <h3 class="pitch-title">ความแข็งแกร่งของทีม</h3>
-            
-            <div id="player-display-area" class="pitch-grid">
-                
-                <div class="fut-card">
-                    <div class="card-top">
-                        <span class="rating">99</span>
-                        <span class="position">FW</span>
-                    </div>
-                    <div class="image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150" alt="Player">
-                    </div>
-                    <div class="card-bottom">
-                        <div class="player-name">ชื่อนักเตะ</div>
-                        <button class="btn-info">ดูข้อมูล</button>
-                        <button class="btn-remove">ปลดออกจากทีม</button>
-                    </div>
-                </div>
+  function renderSquadList(){
+    squadTitle.style.display = players.length ? 'block' : 'none';
+    squadList.innerHTML = players.map(function(p){
+      const priceLabel = formatPrice(p.price) || 'ยังไม่ตั้งราคา';
+      return `
+        <div class="squad-item" data-id="${p.id}">
+          <span class="r">${escapeHtml(String(p.rating))}</span>
+          <span class="p">${escapeHtml(p.position)}</span>
+          <span class="n">${escapeHtml(p.name)}</span>
+          <span class="price">${escapeHtml(priceLabel)}</span>
+          <span class="item-actions">
+            <button type="button" class="edit-btn" data-action="edit" data-id="${p.id}">แก้ไข</button>
+          </span>
+        </div>
+      `;
+    }).join('');
+  }
 
-            </div>
-        </section>
+  function enterEditMode(id){
+    const player = players.find(p => p.id === id);
+    if(!player) return;
+    editingId = id;
+    nameInput.value = player.name;
+    positionSelect.value = player.position;
+    ratingInput.value = player.rating;
+    imageInput.value = player.image || '';
+    priceInput.value = player.price || '';
+    renderCard();
 
-    </main>
+    pushBtn.textContent = 'บันทึกการแก้ไข';
+    pushBtn.classList.add('editing');
+    cancelEditBtn.style.display = 'inline-block';
+    editingBanner.classList.add('show');
+    statusLine.textContent = `กำลังแก้ไข "${player.name}"`;
+    statusLine.className = 'status-line';
+    form.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 
-    <script src="app.js"></script>
+  function exitEditMode(){
+    editingId = null;
+    pushBtn.textContent = 'Push เข้าตลาด';
+    pushBtn.classList.remove('editing');
+    cancelEditBtn.style.display = 'none';
+    editingBanner.classList.remove('show');
+  }
+
+  ['input','change'].forEach(evt => {
+    nameInput.addEventListener(evt, renderCard);
+    positionSelect.addEventListener(evt, renderCard);
+    ratingInput.addEventListener(evt, renderCard);
+    imageInput.addEventListener(evt, renderCard);
+    priceInput.addEventListener(evt, renderCard);
+  });
+
+  testBtn.addEventListener('click', function(){
+    nameInput.value = 'ทดสอบ นักเตะ';
+    positionSelect.value = 'FW';
+    ratingInput.value = 88;
+    imageInput.value = '';
+    priceInput.value = 2500;
+    renderCard();
+    statusLine.textContent = 'พิมพ์ทดสอบแล้ว — ลองดูการ์ดทางขวา';
+    statusLine.className = 'status-line ok';
+  });
+
+  cancelEditBtn.addEventListener('click', function(){
+    exitEditMode();
+    form.reset();
+    ratingInput.value = 75;
+    renderCard();
+    statusLine.textContent = 'ยกเลิกการแก้ไขแล้ว';
+    statusLine.className = 'status-line';
+  });
+
+  squadList.addEventListener('click', function(e){
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = Number(btn.dataset.id);
+    if(btn.dataset.action === 'edit'){
+      enterEditMode(id);
+    }
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = nameInput.value.trim();
+    if(!name){
+      statusLine.textContent = 'กรุณากรอกชื่อนักเตะก่อน Push';
+      statusLine.className = 'status-line err';
+      nameInput.focus();
+      return;
+    }
+
+    const payload = {
+      name: name,
+      position: positionSelect.value,
+      rating: Number(ratingInput.value),
+      image: imageInput.value.trim(),
+      price: priceInput.value ? Number(priceInput.value) : null
+    };
+
+    if(editingId !== null){
+      // Update existing player
+      // Real backend call would look like:
+      // fetch(`/api/players/${editingId}`, { method:'PUT', body: JSON.stringify(payload) })
+      const idx = players.findIndex(p => p.id === editingId);
+      if(idx !== -1){
+        players[idx] = Object.assign({ id: editingId }, payload);
+      }
+      console.log('Update player payload:', payload);
+      statusLine.textContent = `บันทึกการแก้ไข "${name}" เรียบร้อยแล้ว`;
+      statusLine.className = 'status-line ok';
+      exitEditMode();
+    } else {
+      // Create new player
+      // Real backend call would look like:
+      // fetch('/api/players', { method:'POST', body: JSON.stringify(payload) })
+      const newPlayer = Object.assign({ id: nextId++ }, payload);
+      players.unshift(newPlayer);
+      console.log('Push player payload:', payload);
+      statusLine.textContent = `Push "${name}" เข้าตลาดเรียบร้อยแล้ว!`;
+      statusLine.className = 'status-line ok';
+    }
+
+    renderSquadList();
+    form.reset();
+    ratingInput.value = 75;
+    renderCard();
+  });
+
+  renderCard();
+  renderSquadList();
+})();
+</script>
+
 </body>
 </html>
