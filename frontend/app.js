@@ -1,138 +1,202 @@
-// ตัวแปรสำหรับเก็บ ID ของนักเตะที่กำลังถูกแก้ไข (ถ้าไม่มีจะเป็น null)
-let editPlayerId = null;
+(function(){
+  const form = document.getElementById('player-form');
+  const nameInput = document.getElementById('input-name');
+  const positionSelect = document.getElementById('select-position');
+  const ratingInput = document.getElementById('input-rating');
+  const ratingBadge = document.getElementById('rating-badge');
+  const imageInput = document.getElementById('input-image');
+  const priceInput = document.getElementById('input-price');
+  const displayArea = document.getElementById('player-display-area');
+  const statusLine = document.getElementById('status-line');
+  const testBtn = document.getElementById('test-btn');
+  const pushBtn = document.getElementById('push-btn');
+  const cancelEditBtn = document.getElementById('cancel-edit-btn');
+  const editingBanner = document.getElementById('editing-banner');
+  const squadList = document.getElementById('squad-list');
+  const squadTitle = document.getElementById('squad-title');
 
-document.addEventListener('DOMContentLoaded', () => {
-    const playerForm = document.getElementById('player-form');
-    const submitBtn = playerForm.querySelector('.btn-submit-neon');
+  const positionLabels = { GK:'ผู้รักษาประตู', DF:'กองหลัง', MF:'กองกลาง', FW:'กองหน้า' };
 
-    if (playerForm) {
-        playerForm.addEventListener('submit', (event) => {
-            event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+  // in-memory squad data (replace with real backend calls when ready)
+  let players = [];
+  let nextId = 1;
+  let editingId = null;
 
-            // ดึงค่าจากฟอร์ม
-            const name = document.getElementById('input-name').value;
-            const position = document.getElementById('select-position').value;
-            const rating = document.getElementById('input-rating').value;
-            const imageUrl = document.getElementById('input-image').value;
-
-            let players = JSON.parse(localStorage.getItem('players')) || [];
-
-            if (editPlayerId !== null) {
-                // --- โหมดแก้ไขข้อมูล ---
-                players = players.map(player => {
-                    if (player.id === editPlayerId) {
-                        return {
-                            ...player,
-                            name: name,
-                            position: position,
-                            rating: rating,
-                            imageUrl: imageUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150'
-                        };
-                    }
-                    return player;
-                });
-
-                // รีเซ็ตสถานะโหมดแก้ไขกลับเป็นปกติ
-                editPlayerId = null;
-                if (submitBtn) {
-                    submitBtn.innerHTML = `<span class="icon-check">✓</span> เซ็นสัญญาเข้าทีม`;
-                    submitBtn.style.background = 'linear-gradient(90deg, #10b981, #0df59b)'; // กลับเป็นสีเขียว
-                }
-            } else {
-                // --- โหมดเพิ่มนักเตะใหม่ (ปกติ) ---
-                const newPlayer = {
-                    id: Date.now().toString(),
-                    name: name,
-                    position: position,
-                    rating: rating,
-                    imageUrl: imageUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150'
-                };
-                players.push(newPlayer);
-            }
-
-            // บันทึกและวาดการ์ดใหม่
-            localStorage.setItem('players', JSON.stringify(players));
-            playerForm.reset();
-            updatePlayerDisplay();
-        });
-    }
-
-    updatePlayerDisplay();
-});
-
-// ฟังก์ชันวาดการ์ดนักเตะ
-function updatePlayerDisplay() {
-    const displayArea = document.getElementById('player-display-area');
-    if (!displayArea) return;
-
-    displayArea.innerHTML = '';
-    const players = JSON.parse(localStorage.getItem('players')) || [];
-
-    if (players.length === 0) {
-        displayArea.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #8fa0b0; padding-top: 100px;">ยังไม่มีนักเตะในทีมของคุณ ลองเพิ่มนักเตะดูสิ!</p>`;
-        return;
-    }
-
-    players.forEach(player => {
-        const card = document.createElement('div');
-        card.className = 'fut-card';
-        card.innerHTML = `
-            <div class="card-top">
-                <span class="rating">${player.rating}</span>
-                <span class="position">${player.position}</span>
-            </div>
-            <div class="image-wrapper">
-                <img src="${player.imageUrl}" alt="${player.name}">
-            </div>
-            <div class="card-bottom">
-                <div class="player-name">${player.name}</div>
-                <div class="card-actions">
-                    <button class="btn-edit" onclick="handleEdit('${player.id}')">แก้ไข</button>
-                    <button class="btn-remove" onclick="handleDelete('${player.id}')">ปลดออก</button>
-                </div>
-            </div>
-        `;
-        displayArea.appendChild(card);
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
     });
-}
+  }
 
-// ฟังก์ชันเตรียมข้อมูลก่อนแก้ไข (เมื่อคลิกปุ่ม "แก้ไข")
-window.handleEdit = function(playerId) {
-    const players = JSON.parse(localStorage.getItem('players')) || [];
-    const playerToEdit = players.find(p => p.id === playerId);
+  function formatPrice(price){
+    const n = Number(price);
+    if(!price || isNaN(n)) return null;
+    return n.toLocaleString('th-TH') + ' บาท';
+  }
 
-    if (playerToEdit) {
-        // 1. ดึงข้อมูลนักเตะกลับไปใส่ในช่องกรอกของฟอร์ม
-        document.getElementById('input-name').value = playerToEdit.name;
-        document.getElementById('select-position').value = playerToEdit.position;
-        document.getElementById('input-rating').value = playerToEdit.rating;
-        document.getElementById('input-image').value = playerToEdit.imageUrl;
+  function renderCard(){
+    const name = nameInput.value.trim() || 'ชื่อนักเตะ';
+    const position = positionSelect.value;
+    const rating = ratingInput.value;
+    const imageUrl = imageInput.value.trim();
+    const priceLabel = formatPrice(priceInput.value);
 
-        // 2. ล็อก ID นักเตะที่กำลังแก้ไขไว้
-        editPlayerId = playerId;
+    ratingBadge.textContent = rating;
 
-        // 3. เปลี่ยนหน้าตาปุ่ม Submit ให้เด่นชัดว่าเป็น "โหมดแก้ไข"
-        const submitBtn = document.querySelector('.btn-submit-neon');
-        if (submitBtn) {
-            submitBtn.innerHTML = `✏️ บันทึกการแก้ไขข้อมูล`;
-            submitBtn.style.background = 'linear-gradient(90deg, #f5b041, #f39c12)'; // เปลี่ยนเป็นสีส้มทอง
-        }
+    const photoHtml = imageUrl
+      ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" onerror="this.parentElement.innerHTML='<span class=\\'placeholder\\'>โหลดรูปไม่ได้</span>';">`
+      : `<span class="placeholder">ยังไม่มีรูป</span>`;
 
-        // เลื่อนหน้าจอกลับขึ้นไปที่ฟอร์ม (สำหรับมือถือ)
-        document.querySelector('.control-panel').scrollIntoView({ behavior: 'smooth' });
+    displayArea.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <div class="card-top">
+            <div>
+              <div class="card-rating">${escapeHtml(rating)}</div>
+              <div class="card-position">${escapeHtml(position)}</div>
+            </div>
+            <div class="card-crest">DT</div>
+          </div>
+          <div class="card-photo-wrap">${photoHtml}</div>
+          <div class="card-divider"></div>
+          <div class="card-name">${escapeHtml(name)}</div>
+          <div class="card-foot">${escapeHtml(positionLabels[position] || '')}</div>
+        </div>
+        ${priceLabel ? `<div class="card-price">${escapeHtml(priceLabel)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  function renderSquadList(){
+    squadTitle.style.display = players.length ? 'block' : 'none';
+    squadList.innerHTML = players.map(function(p){
+      const priceLabel = formatPrice(p.price) || 'ยังไม่ตั้งราคา';
+      return `
+        <div class="squad-item" data-id="${p.id}">
+          <span class="r">${escapeHtml(String(p.rating))}</span>
+          <span class="p">${escapeHtml(p.position)}</span>
+          <span class="n">${escapeHtml(p.name)}</span>
+          <span class="price">${escapeHtml(priceLabel)}</span>
+          <span class="item-actions">
+            <button type="button" class="edit-btn" data-action="edit" data-id="${p.id}">แก้ไข</button>
+          </span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function enterEditMode(id){
+    const player = players.find(p => p.id === id);
+    if(!player) return;
+    editingId = id;
+    nameInput.value = player.name;
+    positionSelect.value = player.position;
+    ratingInput.value = player.rating;
+    imageInput.value = player.image || '';
+    priceInput.value = player.price || '';
+    renderCard();
+
+    pushBtn.textContent = 'บันทึกการแก้ไข';
+    pushBtn.classList.add('editing');
+    cancelEditBtn.style.display = 'inline-block';
+    editingBanner.classList.add('show');
+    statusLine.textContent = `กำลังแก้ไข "${player.name}"`;
+    statusLine.className = 'status-line';
+    form.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function exitEditMode(){
+    editingId = null;
+    pushBtn.textContent = 'Push เข้าตลาด';
+    pushBtn.classList.remove('editing');
+    cancelEditBtn.style.display = 'none';
+    editingBanner.classList.remove('show');
+  }
+
+  ['input','change'].forEach(evt => {
+    nameInput.addEventListener(evt, renderCard);
+    positionSelect.addEventListener(evt, renderCard);
+    ratingInput.addEventListener(evt, renderCard);
+    imageInput.addEventListener(evt, renderCard);
+    priceInput.addEventListener(evt, renderCard);
+  });
+
+  testBtn.addEventListener('click', function(){
+    nameInput.value = 'ทดสอบ นักเตะ';
+    positionSelect.value = 'FW';
+    ratingInput.value = 88;
+    imageInput.value = '';
+    priceInput.value = 2500;
+    renderCard();
+    statusLine.textContent = 'พิมพ์ทดสอบแล้ว — ลองดูการ์ดทางขวา';
+    statusLine.className = 'status-line ok';
+  });
+
+  cancelEditBtn.addEventListener('click', function(){
+    exitEditMode();
+    form.reset();
+    ratingInput.value = 75;
+    renderCard();
+    statusLine.textContent = 'ยกเลิกการแก้ไขแล้ว';
+    statusLine.className = 'status-line';
+  });
+
+  squadList.addEventListener('click', function(e){
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = Number(btn.dataset.id);
+    if(btn.dataset.action === 'edit'){
+      enterEditMode(id);
     }
-}
+  });
 
-// ฟังก์ชันลบนักเตะ
-window.handleDelete = function(playerId) {
-    // ป้องกันการลบข้อมูลขณะที่กำลังกดแก้ไขค้างไว้
-    if (editPlayerId === playerId) {
-        alert("กรุณาบันทึกข้อมูลการแก้ไข หรือรีเซ็ตฟอร์มก่อนทำการปลดนักเตะคนนี้ออกครับ!");
-        return;
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = nameInput.value.trim();
+    if(!name){
+      statusLine.textContent = 'กรุณากรอกชื่อนักเตะก่อน Push';
+      statusLine.className = 'status-line err';
+      nameInput.focus();
+      return;
     }
 
-    let players = JSON.parse(localStorage.getItem('players')) || [];
-    players = players.filter(player => player.id !== playerId);
-    localStorage.setItem('players', JSON.stringify(players));
-    updatePlayerDisplay();
-}
+    const payload = {
+      name: name,
+      position: positionSelect.value,
+      rating: Number(ratingInput.value),
+      image: imageInput.value.trim(),
+      price: priceInput.value ? Number(priceInput.value) : null
+    };
+
+    if(editingId !== null){
+      // Update existing player
+      // Real backend call would look like:
+      // fetch(`/api/players/${editingId}`, { method:'PUT', body: JSON.stringify(payload) })
+      const idx = players.findIndex(p => p.id === editingId);
+      if(idx !== -1){
+        players[idx] = Object.assign({ id: editingId }, payload);
+      }
+      console.log('Update player payload:', payload);
+      statusLine.textContent = `บันทึกการแก้ไข "${name}" เรียบร้อยแล้ว`;
+      statusLine.className = 'status-line ok';
+      exitEditMode();
+    } else {
+      // Create new player
+      // Real backend call would look like:
+      // fetch('/api/players', { method:'POST', body: JSON.stringify(payload) })
+      const newPlayer = Object.assign({ id: nextId++ }, payload);
+      players.unshift(newPlayer);
+      console.log('Push player payload:', payload);
+      statusLine.textContent = `Push "${name}" เข้าตลาดเรียบร้อยแล้ว!`;
+      statusLine.className = 'status-line ok';
+    }
+
+    renderSquadList();
+    form.reset();
+    ratingInput.value = 75;
+    renderCard();
+  });
+
+  renderCard();
+  renderSquadList();
+})();
