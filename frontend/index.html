@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Team Football Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="stadium-header">
+        <div class="header-left">
+            <h2>Dream Team Football Manager</h2>
+        </div>
+        <div class="header-logo">
+            <div class="logo-shield">DT</div>
+        </div>
+        <div class="header-right">
+            <div class="user-profile">👤</div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        
+        <aside class="control-panel">
+            <h3 class="panel-title">⚽ การจัดการนักเตะฟุตบอล</h3>
+            <div class="form-card">
+                <h4 class="form-title">Add Player</h4>
+                
+                <form id="player-form">
+                    <div class="form-group">
+                        <label>ชื่อนักเตะ</label>
+                        <input type="text" id="input-name" placeholder="ชื่อนักเตะ" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ตำแหน่ง</label>
+                        <select id="select-position" required>
+                            <option value="" disabled selected>FW MF DF GK</option>
+                            <option value="FW">กองหน้า (FW)</option>
+                            <option value="MF">กองกลาง (MF)</option>
+                            <option value="DF">กองหลัง (DF)</option>
+                            <option value="GK">ผู้รักษาประตู (GK)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>พลัง</label>
+                        <input type="number" id="input-rating" min="1" max="99" placeholder="1-99" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ลิงก์รูปภาพ</label>
+                        <input type="url" id="input-image" placeholder="ลิงก์รูปภาพ URL" required>
+                    </div>
+
+                    <button type="submit" class="btn-submit-neon">
+                        <span class="icon-check">✓</span> เซ็นสัญญาเข้าทีม
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <section class="pitch-area">
+            <h3 class="pitch-title">ความแข็งแกร่งของทีม</h3>
+            
+            <div id="player-display-area" class="pitch-grid">
+                
+                <div class="fut-card">
+                    <div class="card-top">
+                        <span class="rating">99</span>
+                        <span class="position">FW</span>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150" alt="Player">
+                    </div>
+                    <div class="card-bottom">
+                        <div class="player-name">ชื่อนักเตะ</div>
+                        <button class="btn-info">ดูข้อมูล</button>
+                        <button class="btn-remove">ปลดออกจากทีม</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
