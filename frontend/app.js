@@ -1,3 +1,5 @@
+// งบประมาณเริ่มต้นของทีม (100 ล้านยูโร)
+let teamBudget = 100000000;
 // ตัวแปรสำหรับเก็บ ID ของนักเตะที่กำลังถูกแก้ไข (ถ้าไม่มีจะเป็น null)
 let editPlayerId = null;
 
@@ -94,6 +96,24 @@ function updatePlayerDisplay() {
         `;
         displayArea.appendChild(card);
     });
+}
+
+// ฟังก์ชันคำนวณค่าตัวนักเตะ (คุณเป็นคนคุมลอจิกนี้)
+function calculatePlayerPrice(position, rating) {
+    let basePrice = rating * 100000; // พลัง x 100,000 ยูโร
+
+    // ตัวคูณตามความฮิตของตำแหน่ง
+    if (position === 'กองหน้า (FW)') {
+        basePrice *= 1.5;
+    } else if (position === 'กองกลาง (MF)') {
+        basePrice *= 1.2;
+    } else if (position === 'กองหลัง (DF)') {
+        basePrice *= 0.9;
+    } else if (position === 'ผู้รักษาประตู (GK)') {
+        basePrice *= 0.8;
+    }
+
+    return Math.round(basePrice);
 }
 
 // ฟังก์ชันเตรียมข้อมูลก่อนแก้ไข (เมื่อคลิกปุ่ม "แก้ไข")
