@@ -140,7 +140,7 @@ function handleDeletePlayer(playerId) {
     if (player) {
         // 2. คืนเงินค่าตัวเข้าสู่ งบประมาณหลัก
         teamBudget += player.price;
-        
+    
         // 3. ทำการลบนักเตะตามลอจิกเดิมของคุณ...
     }
 }
