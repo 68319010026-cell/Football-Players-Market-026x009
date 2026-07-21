@@ -1,13 +1,16 @@
-const API_BASE_URL = 'http://localhost:3000'; // เปลี่ยนเป็น Port ของ Backend คุณ
+const API_BASE_URL = 'http://localhost:3000'; // เปลี่ยนเป็น Port Backend ของคุณ
 
 // ==========================================
 // 1. ระบบ AUTHENTICATION & MODAL
 // ==========================================
 function toggleAuthModal(show) {
   const modal = document.getElementById('auth-modal');
-  document.getElementById('auth-msg').innerText = '';
-  if (show) modal.classList.remove('hidden');
-  else modal.classList.add('hidden');
+  const msgEl = document.getElementById('auth-msg');
+  if (msgEl) msgEl.innerText = '';
+  if (modal) {
+    if (show) modal.classList.remove('hidden');
+    else modal.classList.add('hidden');
+  }
 }
 
 function switchAuthTab(tab) {
@@ -15,18 +18,19 @@ function switchAuthTab(tab) {
   const regForm = document.getElementById('register-form');
   const loginBtn = document.getElementById('tab-login-btn');
   const regBtn = document.getElementById('tab-register-btn');
-  document.getElementById('auth-msg').innerText = '';
+  const msgEl = document.getElementById('auth-msg');
+  if (msgEl) msgEl.innerText = '';
 
   if (tab === 'login') {
-    loginForm.classList.remove('hidden');
-    regForm.classList.add('hidden');
-    loginBtn.classList.add('active');
-    regBtn.classList.remove('active');
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (regForm) regForm.classList.add('hidden');
+    if (loginBtn) loginBtn.classList.add('active');
+    if (regBtn) regBtn.classList.remove('active');
   } else {
-    loginForm.classList.add('hidden');
-    regForm.classList.remove('hidden');
-    loginBtn.classList.remove('active');
-    regBtn.classList.add('active');
+    if (loginForm) loginForm.classList.add('hidden');
+    if (regForm) regForm.classList.remove('hidden');
+    if (loginBtn) loginBtn.classList.remove('active');
+    if (regBtn) regBtn.classList.add('active');
   }
 }
 
@@ -72,7 +76,7 @@ async function handleLogin(e) {
     const data = await res.json();
     if (res.ok) {
       localStorage.setItem('accessToken', data.accessToken);
-      if(data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+      if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
       
       toggleAuthModal(false);
       checkAuthStatus();
@@ -106,22 +110,26 @@ function checkAuthStatus() {
   const guestView = document.getElementById('auth-guest-view');
   const userView = document.getElementById('auth-user-view');
 
-  if (token) {
-    guestView.classList.add('hidden');
-    userView.classList.remove('hidden');
-  } else {
-    guestView.classList.remove('hidden');
-    userView.classList.add('hidden');
+  // ป้องกัน Error กรณีที่ DOM ยังโหลดไม่เสร็จ
+  if (guestView && userView) {
+    if (token) {
+      guestView.classList.add('hidden');
+      userView.classList.remove('hidden');
+    } else {
+      guestView.classList.remove('hidden');
+      userView.classList.add('hidden');
+    }
   }
 }
 
-checkAuthStatus();
-
 
 // ==========================================
-// 2. ระบบจัดการการ์ดนักเตะ (เชื่อมต่อ API จริง)
+// 2. ระบบจัดการการ์ดนักเตะ (ทำงานเมื่อ DOM โหลดเสร็จ)
 // ==========================================
-(function(){
+document.addEventListener('DOMContentLoaded', function() {
+  // เช็กสถานะเข้าสู่ระบบเมื่อหน้าเว็บพร้อม
+  checkAuthStatus();
+
   const form = document.getElementById('player-form');
   const nameInput = document.getElementById('input-name');
   const positionSelect = document.getElementById('select-position');
@@ -156,13 +164,14 @@ checkAuthStatus();
   }
 
   function renderCard(){
+    if (!displayArea) return;
     const name = nameInput.value.trim() || 'ชื่อนักเตะ';
     const position = positionSelect.value;
     const rating = ratingInput.value;
     const imageUrl = imageInput.value.trim();
     const priceLabel = formatPrice(priceInput.value);
 
-    ratingBadge.textContent = rating;
+    if (ratingBadge) ratingBadge.textContent = rating;
 
     const photoHtml = imageUrl
       ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" onerror="this.parentElement.innerHTML='<span class=\\'placeholder\\'>โหลดรูปไม่ได้</span>';">`
@@ -189,10 +198,12 @@ checkAuthStatus();
   }
 
   function renderSquadList(){
-    squadTitle.style.display = players.length ? 'block' : 'none';
+    if (!squadList) return;
+    if (squadTitle) squadTitle.style.display = players.length ? 'block' : 'none';
+    
     squadList.innerHTML = players.map(function(p){
       const priceLabel = formatPrice(p.price) || 'ยังไม่ตั้งราคา';
-      const id = p._id || p.id; // รองรับทั้ง MongoDB _id หรือ id ทั่วไป
+      const id = p._id || p.id;
       return `
         <div class="squad-item" data-id="${id}">
           <span class="r">${escapeHtml(String(p.rating))}</span>
@@ -208,7 +219,6 @@ checkAuthStatus();
     }).join('');
   }
 
-  // ดึงรายการนักเตะจาก Backend (GET)
   async function fetchPlayers() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/players`);
@@ -217,11 +227,10 @@ checkAuthStatus();
         renderSquadList();
       }
     } catch (err) {
-      console.log('ยังไม่สามารถดึงข้อมูลนักเตะได้:', err);
+      console.log('ยังเชื่อมต่อ Backend ดึงข้อมูลไม่ได้');
     }
   }
 
-  // ลบนักเตะออกจาก Backend (DELETE)
   async function deletePlayer(id) {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -279,126 +288,131 @@ checkAuthStatus();
   }
 
   ['input','change'].forEach(evt => {
-    nameInput.addEventListener(evt, renderCard);
-    positionSelect.addEventListener(evt, renderCard);
-    ratingInput.addEventListener(evt, renderCard);
-    imageInput.addEventListener(evt, renderCard);
-    priceInput.addEventListener(evt, renderCard);
+    if(nameInput) nameInput.addEventListener(evt, renderCard);
+    if(positionSelect) positionSelect.addEventListener(evt, renderCard);
+    if(ratingInput) ratingInput.addEventListener(evt, renderCard);
+    if(imageInput) imageInput.addEventListener(evt, renderCard);
+    if(priceInput) priceInput.addEventListener(evt, renderCard);
   });
 
-  testBtn.addEventListener('click', function(){
-    nameInput.value = 'ทดสอบ นักเตะ';
-    positionSelect.value = 'FW';
-    ratingInput.value = 88;
-    imageInput.value = '';
-    priceInput.value = 2500;
-    renderCard();
-    statusLine.textContent = 'พิมพ์ทดสอบแล้ว — ลองดูการ์ดทางขวา';
-    statusLine.className = 'status-line ok';
-  });
+  if(testBtn) {
+    testBtn.addEventListener('click', function(){
+      nameInput.value = 'ทดสอบ นักเตะ';
+      positionSelect.value = 'FW';
+      ratingInput.value = 88;
+      imageInput.value = '';
+      priceInput.value = 2500;
+      renderCard();
+      statusLine.textContent = 'พิมพ์ทดสอบแล้ว — ลองดูการ์ดทางขวา';
+      statusLine.className = 'status-line ok';
+    });
+  }
 
-  cancelEditBtn.addEventListener('click', function(){
-    exitEditMode();
-    form.reset();
-    ratingInput.value = 75;
-    renderCard();
-    statusLine.textContent = 'ยกเลิกการแก้ไขแล้ว';
-    statusLine.className = 'status-line';
-  });
-
-  squadList.addEventListener('click', function(e){
-    const btn = e.target.closest('button[data-action]');
-    if(!btn) return;
-    const id = btn.dataset.id;
-    const action = btn.dataset.action;
-
-    if (action === 'edit') {
-      enterEditMode(id);
-    } else if (action === 'delete') {
-      if (confirm('คุณต้องการลบนักเตะคนนี้ใช่หรือไม่?')) {
-        deletePlayer(id);
-      }
-    }
-  });
-
-  // บันทึก / แก้ไขข้อมูลนักเตะ (POST & PUT)
-  form.addEventListener('submit', async function(e){
-    e.preventDefault();
-    const name = nameInput.value.trim();
-    if(!name){
-      statusLine.textContent = 'กรุณากรอกชื่อนักเตะก่อน Push';
-      statusLine.className = 'status-line err';
-      nameInput.focus();
-      return;
-    }
-
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      alert('กรุณาเข้าสู่ระบบก่อนทำรายการ Push หรือแก้ไขนักเตะ');
-      toggleAuthModal(true);
-      return;
-    }
-
-    const payload = {
-      name: name,
-      position: positionSelect.value,
-      rating: Number(ratingInput.value),
-      image: imageInput.value.trim(),
-      price: priceInput.value ? Number(priceInput.value) : null
-    };
-
-    try {
-      if(editingId !== null){
-        // UPDATE (PUT)
-        const res = await fetch(`${API_BASE_URL}/api/players/${editingId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (res.ok) {
-          statusLine.textContent = `บันทึกการแก้ไข "${name}" เรียบร้อยแล้ว`;
-          statusLine.className = 'status-line ok';
-          exitEditMode();
-          fetchPlayers();
-        } else {
-          statusLine.textContent = 'ไม่สามารถบันทึกการแก้ไขได้';
-          statusLine.className = 'status-line err';
-        }
-      } else {
-        // CREATE (POST)
-        const res = await fetch(`${API_BASE_URL}/api/players`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (res.ok) {
-          statusLine.textContent = `Push "${name}" เข้าตลาดเรียบร้อยแล้ว!`;
-          statusLine.className = 'status-line ok';
-          fetchPlayers();
-        } else {
-          statusLine.textContent = 'ไม่สามารถสร้างนักเตะได้';
-          statusLine.className = 'status-line err';
-        }
-      }
-
+  if(cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', function(){
+      exitEditMode();
       form.reset();
       ratingInput.value = 75;
       renderCard();
+      statusLine.textContent = 'ยกเลิกการแก้ไขแล้ว';
+      statusLine.className = 'status-line';
+    });
+  }
 
-    } catch (err) {
-      statusLine.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
-      statusLine.className = 'status-line err';
-    }
-  });
+  if(squadList) {
+    squadList.addEventListener('click', function(e){
+      const btn = e.target.closest('button[data-action]');
+      if(!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+
+      if (action === 'edit') {
+        enterEditMode(id);
+      } else if (action === 'delete') {
+        if (confirm('คุณต้องการลบนักเตะคนนี้ใช่หรือไม่?')) {
+          deletePlayer(id);
+        }
+      }
+    });
+  }
+
+  if(form) {
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      if(!name){
+        statusLine.textContent = 'กรุณากรอกชื่อนักเตะก่อน Push';
+        statusLine.className = 'status-line err';
+        nameInput.focus();
+        return;
+      }
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        alert('กรุณาเข้าสู่ระบบก่อนทำรายการ Push หรือแก้ไขนักเตะ');
+        toggleAuthModal(true);
+        return;
+      }
+
+      const payload = {
+        name: name,
+        position: positionSelect.value,
+        rating: Number(ratingInput.value),
+        image: imageInput.value.trim(),
+        price: priceInput.value ? Number(priceInput.value) : null
+      };
+
+      try {
+        if(editingId !== null){
+          const res = await fetch(`${API_BASE_URL}/api/players/${editingId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            statusLine.textContent = `บันทึกการแก้ไข "${name}" เรียบร้อยแล้ว`;
+            statusLine.className = 'status-line ok';
+            exitEditMode();
+            fetchPlayers();
+          } else {
+            statusLine.textContent = 'ไม่สามารถบันทึกการแก้ไขได้';
+            statusLine.className = 'status-line err';
+          }
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/players`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            statusLine.textContent = `Push "${name}" เข้าตลาดเรียบร้อยแล้ว!`;
+            statusLine.className = 'status-line ok';
+            fetchPlayers();
+          } else {
+            statusLine.textContent = 'ไม่สามารถสร้างนักเตะได้';
+            statusLine.className = 'status-line err';
+          }
+        }
+
+        form.reset();
+        ratingInput.value = 75;
+        renderCard();
+
+      } catch (err) {
+        statusLine.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
+        statusLine.className = 'status-line err';
+      }
+    });
+  }
 
   renderCard();
-  fetchPlayers(); // ดึงรายการนักเตะทันทีเมื่อโหลดหน้าเว็บ
-})();
+  fetchPlayers();
+});
