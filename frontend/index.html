@@ -1,128 +1,166 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dream Team Football Market</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Players Market</title>
+  <!-- Google Fonts ตามที่ใช้ใน CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="pitch-lines">
+  <!-- TOP AUTH BAR -->
   <div class="auth-bar">
     <div id="auth-guest-view">
-      <button class="auth-btn" onclick="toggleAuthModal(true)">เข้าสู่ระบบ / สมัครสมาชิก</button>
+      <button class="auth-btn" onclick="toggleAuthModal(true)">LOGIN / REGISTER</button>
     </div>
-    <div id="auth-user-view" class="user-info hidden">
-      <span id="user-display">Logged In</span>
-      <button class="auth-btn logout" onclick="handleLogout()">ออกจากระบบ</button>
+    <div id="auth-user-view" class="hidden">
+      <div class="user-info">
+        <span>● ONLINE</span>
+        <button class="auth-btn logout" onclick="handleLogout()">LOGOUT</button>
+      </div>
     </div>
   </div>
 
-  <header>
-    <div class="eyebrow">Dream Team Football Market</div>
-    <h1>สร้างนักเตะ<br><span>ของทีมในฝัน</span></h1>
-    <p>กรอกข้อมูลนักเตะทางซ้าย แล้วดูการ์ดของคุณอัปเดตแบบเรียลไทม์ทางขวา เสร็จแล้วกด Push เพื่อส่งเข้าตลาดทีมในฝัน</p>
+  <!-- HEADER -->
+  <header class="pitch-lines">
+    <div class="eyebrow">ULTIMATE TEAM MANAGER</div>
+    <h1>FOOTBALL <span>PLAYERS</span> MARKET</h1>
+    <p>จัดการการ์ดนักเตะ เชื่อมต่อระบบหลังบ้าน และจัดการโปรไฟล์ของคุณ</p>
   </header>
-</div>
 
-<!-- Modal สำหรับ เข้าสู่ระบบ / สมัครสมาชิก -->
-<div id="auth-modal" class="modal-overlay hidden">
-  <div class="auth-container">
-    <button class="close-modal" onclick="toggleAuthModal(false)">✕</button>
-    <div class="auth-tabs">
-      <button id="tab-login-btn" class="active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
-      <button id="tab-register-btn" onclick="switchAuthTab('register')">สมัครสมาชิก</button>
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- LEFT PANEL: CONTROLLER -->
+    <div class="panel">
+      <div class="panel-title">PLAYER / PROFILE CONTROLLER</div>
+
+      <div id="editing-banner" class="editing-banner">
+        กำลังแก้ไขข้อมูลนักเตะ
+      </div>
+
+      <form id="player-form">
+        <div class="field">
+          <label for="player-name">ชื่อนักเตะ (Player Name)</label>
+          <input type="text" id="player-name" placeholder="เช่น Lionel Messi" required>
+        </div>
+
+        <div class="field">
+          <label for="player-pos">ตำแหน่ง (Position)</label>
+          <select id="player-pos">
+            <option value="FW">FW - Forward</option>
+            <option value="MF">MF - Midfield</option>
+            <option value="DF">DF - Defender</option>
+            <option value="GK">GK - Goalkeeper</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="player-rating">พลังความสามารถ (Rating 1-99)</label>
+          <div class="rating-row">
+            <input type="range" id="player-rating" min="1" max="99" value="85">
+            <span id="rating-val" class="rating-badge">85</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="player-price">ราคาตลาด (Market Price $)</label>
+          <input type="number" id="player-price" placeholder="เช่น 50000000">
+        </div>
+
+        <div class="field">
+          <label for="player-img">รูปภาพ (Image URL)</label>
+          <input type="url" id="player-img" placeholder="https://example.com/photo.jpg">
+          <small>ใส่ URL รูปภาพนักเตะเพื่อแสดงบนการ์ด</small>
+        </div>
+
+        <div id="status-line" class="status-line"></div>
+
+        <div class="actions">
+          <button type="button" id="test-btn">TEST CONNECTION</button>
+          <button type="submit" id="push-btn">ADD PLAYER</button>
+          <button type="button" id="cancel-edit-btn" style="display:none;">CANCEL</button>
+        </div>
+      </form>
     </div>
 
-    <!-- ฟอร์ม เข้าสู่ระบบ -->
-    <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
-      <label for="login-email">อีเมล</label>
-      <input type="email" id="login-email" required placeholder="example@email.com">
-      
-      <label for="login-password">รหัสผ่าน</label>
-      <input type="password" id="login-password" required placeholder="••••••••">
-      
-      <button type="submit" class="btn-submit">Login</button>
-    </form>
-
-    <!-- ฟอร์ม สมัครสมาชิก -->
-    <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
-      <label for="reg-email">อีเมล</label>
-      <input type="email" id="reg-email" required placeholder="example@email.com">
-      
-      <label for="reg-password">รหัสผ่าน</label>
-      <input type="password" id="reg-password" required placeholder="••••••••">
-      
-      <button type="submit" class="btn-submit">Register</button>
-    </form>
-
-    <div id="auth-msg" class="auth-msg"></div>
-  </div>
-</div>
-
-<main>
-  <section class="panel">
-    <p class="panel-title">ข้อมูลนักเตะ</p>
-    <form id="player-form">
-      <div class="editing-banner" id="editing-banner">กำลังแก้ไขนักเตะ — เปลี่ยนข้อมูลแล้วกด "บันทึกการแก้ไข"</div>
-      <div class="field">
-        <label for="input-name">ชื่อนักเตะ</label>
-        <input type="text" id="input-name" placeholder="เช่น สมชาย ใจเพชร" autocomplete="off">
-      </div>
-
-      <div class="field">
-        <label for="select-position">ตำแหน่ง</label>
-        <select id="select-position">
-          <option value="GK">GK — ผู้รักษาประตู</option>
-          <option value="DF">DF — กองหลัง</option>
-          <option value="MF" selected>MF — กองกลาง</option>
-          <option value="FW">FW — กองหน้า</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="input-rating">ค่าพลัง (Overall Rating)</label>
-        <div class="rating-row">
-          <input type="range" id="input-rating" min="40" max="99" value="75">
-          <span class="rating-badge" id="rating-badge">75</span>
+    <!-- RIGHT COLUMN: CARD PREVIEW & SQUAD LIST -->
+    <div class="preview-col">
+      <div id="player-display-area">
+        <div class="card">
+          <div class="card-body">
+            <div class="card-top">
+              <div>
+                <div id="card-rating-display" class="card-rating">85</div>
+                <div id="card-pos-display" class="card-position">FW</div>
+              </div>
+              <div class="card-crest">FC</div>
+            </div>
+            <div class="card-photo-wrap">
+              <span class="placeholder">NO PHOTO</span>
+            </div>
+            <div id="card-name-display" class="card-name">PLAYER NAME</div>
+            <div class="card-divider"></div>
+            <div class="card-foot">SPECIAL CARD</div>
+          </div>
+          <div id="card-price-display" class="card-price">$0</div>
         </div>
-        <small>ลากแถบเพื่อปรับพลังนักเตะระหว่าง 40–99</small>
       </div>
 
-      <div class="field">
-        <label for="input-image">ลิงก์รูปภาพ</label>
-        <input type="url" id="input-image" placeholder="https://example.com/photo.jpg">
-        <small>วางลิงก์รูปภาพนักเตะ (ไม่บังคับ)</small>
+      <div id="squad-title" class="squad-title" style="display:none;">SQUAD LIST</div>
+      <div id="squad-list"></div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    ULTIMATE TEAM MANAGER &copy; 2026
+  </footer>
+
+  <!-- AUTH MODAL OVERLAY -->
+  <div id="auth-modal" class="modal-overlay hidden">
+    <div class="auth-container">
+      <button class="close-modal" onclick="toggleAuthModal(false)">&times;</button>
+      
+      <div class="auth-tabs">
+        <button id="tab-login-btn" class="active" onclick="switchAuthTab('login')">LOGIN</button>
+        <button id="tab-register-btn" onclick="switchAuthTab('register')">REGISTER</button>
       </div>
 
-      <div class="field">
-        <label for="input-price">ราคา (บาท)</label>
-        <input type="number" id="input-price" min="0" step="1" placeholder="เช่น 1500">
-        <small>ตั้งราคาซื้อขายนักเตะในตลาด</small>
-      </div>
+      <!-- LOGIN FORM -->
+      <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+        <div>
+          <label>EMAIL</label>
+          <input type="email" id="login-email" placeholder="user@example.com" required>
+        </div>
+        <div>
+          <label>PASSWORD</label>
+          <input type="password" id="login-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit">SIGN IN</button>
+      </form>
 
-      <div class="actions">
-        <button type="button" id="test-btn">ทดสอบพิมพ์</button>
-        <button type="button" id="cancel-edit-btn" style="display:none;">ยกเลิกแก้ไข</button>
-        <button type="submit" id="push-btn">Push เข้าตลาด</button>
-      </div>
-      <div class="status-line" id="status-line"></div>
-    </form>
-  </section>
+      <!-- REGISTER FORM -->
+      <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+        <div>
+          <label>EMAIL</label>
+          <input type="email" id="reg-email" placeholder="user@example.com" required>
+        </div>
+        <div>
+          <label>PASSWORD</label>
+          <input type="password" id="reg-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit">CREATE ACCOUNT</button>
+      </form>
 
-  <section class="preview-col">
-    <div id="player-display-area"></div>
-    <div class="squad-title" id="squad-title" style="display:none;">นักเตะที่ Push แล้ว</div>
-    <div id="squad-list"></div>
-  </section>
-</main>
+      <div id="auth-msg" class="auth-msg"></div>
+    </div>
+  </div>
 
-<footer>Dream Team Football Market — สนามซ้อมสำหรับสร้างการ์ดนักเตะ</footer>
-
-<!-- สั่งเรียกใช้ไฟล์ app.js บรรทัดนี้บรรทัดเดียวพอครับ -->
-<script src="app.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
