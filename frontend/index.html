@@ -11,11 +11,56 @@
 <body>
 
 <div class="pitch-lines">
+  <div class="auth-bar">
+    <div id="auth-guest-view">
+      <button class="auth-btn" onclick="toggleAuthModal(true)">เข้าสู่ระบบ / สมัครสมาชิก</button>
+    </div>
+    <div id="auth-user-view" class="user-info hidden">
+      <span id="user-display">Logged In</span>
+      <button class="auth-btn logout" onclick="handleLogout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
   <header>
     <div class="eyebrow">Dream Team Football Market</div>
     <h1>สร้างนักเตะ<br><span>ของทีมในฝัน</span></h1>
     <p>กรอกข้อมูลนักเตะทางซ้าย แล้วดูการ์ดของคุณอัปเดตแบบเรียลไทม์ทางขวา เสร็จแล้วกด Push เพื่อส่งเข้าตลาดทีมในฝัน</p>
   </header>
+</div>
+
+<!-- Modal สำหรับ เข้าสู่ระบบ / สมัครสมาชิก -->
+<div id="auth-modal" class="modal-overlay hidden">
+  <div class="auth-container">
+    <button class="close-modal" onclick="toggleAuthModal(false)">✕</button>
+    <div class="auth-tabs">
+      <button id="tab-login-btn" class="active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
+      <button id="tab-register-btn" onclick="switchAuthTab('register')">สมัครสมาชิก</button>
+    </div>
+
+    <!-- ฟอร์ม เข้าสู่ระบบ -->
+    <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+      <label for="login-email">อีเมล</label>
+      <input type="email" id="login-email" required placeholder="example@email.com">
+      
+      <label for="login-password">รหัสผ่าน</label>
+      <input type="password" id="login-password" required placeholder="••••••••">
+      
+      <button type="submit" class="btn-submit">Login</button>
+    </form>
+
+    <!-- ฟอร์ม สมัครสมาชิก -->
+    <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+      <label for="reg-email">อีเมล</label>
+      <input type="email" id="reg-email" required placeholder="example@email.com">
+      
+      <label for="reg-password">รหัสผ่าน</label>
+      <input type="password" id="reg-password" required placeholder="••••••••">
+      
+      <button type="submit" class="btn-submit">Register</button>
+    </form>
+
+    <div id="auth-msg" class="auth-msg"></div>
+  </div>
 </div>
 
 <main>
@@ -77,7 +122,7 @@
 
 <footer>Dream Team Football Market — สนามซ้อมสำหรับสร้างการ์ดนักเตะ</footer>
 
+<!-- สั่งเรียกใช้ไฟล์ app.js บรรทัดนี้บรรทัดเดียวพอครับ -->
 <script src="app.js"></script>
-
 </body>
 </html>
